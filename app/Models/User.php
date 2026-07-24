@@ -7,6 +7,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -14,12 +15,6 @@ use Illuminate\Support\Str;
 class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable;
-
-    /*
-    |--------------------------------------------------------------------------
-    | Roles
-    |--------------------------------------------------------------------------
-    */
 
     public const ROLE_KARYAWAN =
         'karyawan';
@@ -33,23 +28,11 @@ class User extends Authenticatable implements FilamentUser
     public const ROLE_SUPER_ADMIN =
         'super_admin';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Status
-    |--------------------------------------------------------------------------
-    */
-
     public const STATUS_ACTIVE =
         'active';
 
     public const STATUS_INACTIVE =
         'inactive';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Fillable
-    |--------------------------------------------------------------------------
-    */
 
     protected $fillable = [
         'name',
@@ -59,7 +42,14 @@ class User extends Authenticatable implements FilamentUser
         'phone',
         'avatar',
         'department_id',
-        'position_id',
+
+        /*
+         * position_id masih legacy.
+         * Data baru memakai position_name.
+         */
+
+        'position_name',
+
         'manager_id',
         'role',
         'status',
@@ -68,66 +58,65 @@ class User extends Authenticatable implements FilamentUser
         'join_date',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Hidden
-    |--------------------------------------------------------------------------
-    */
-
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Casts
-    |--------------------------------------------------------------------------
-    */
-
     protected function casts(): array
     {
         return [
-            'email_verified_at' =>
-                'datetime',
+            'email_verified_at' => 'datetime',
 
-            'password' =>
-                'hashed',
+            'password' => 'hashed',
 
-            'join_date' =>
-                'date',
+            'join_date' => 'date',
 
-            'semester' =>
-                'integer',
+            'semester' => 'integer',
 
-            'annual_leave_quota' =>
-                'integer',
+            'annual_leave_quota' => 'integer',
         ];
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Filament Panel Access
+    | FILAMENT ACCESS
     |--------------------------------------------------------------------------
     |
-    | HANYA Super Admin.
+    | Super Admin:
+    | full admin.
     |
-    | Employee, Manager, dan HR tidak menggunakan Filament.
+    | HR:
+    | Information & Regulation.
+    |
+    | Contributor:
+    | Learning Management sesuai divisi.
     |
     */
 
     public function canAccessPanel(
-    Panel $panel
+        Panel $panel
     ): bool {
+        if (
+            $panel->getId()
+            !== 'admin'
+        ) {
+            return false;
+        }
+
+        if (! $this->isActive()) {
+            return false;
+        }
+
         return
-            $panel->getId() === 'admin'
-            && $this->isActive()
-            && $this->isSuperAdmin();
+            $this->isSuperAdmin()
+            || $this->isHr()
+            || $this->isContributor();
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Helpers
+    | HELPERS
     |--------------------------------------------------------------------------
     */
 
@@ -142,14 +131,13 @@ class User extends Authenticatable implements FilamentUser
             ->map(
                 fn (
                     string $name
-                ): string =>
-                    Str::upper(
-                        Str::substr(
-                            $name,
-                            0,
-                            1
-                        )
+                ): string => Str::upper(
+                    Str::substr(
+                        $name,
+                        0,
+                        1
                     )
+                )
             )
             ->implode('');
     }
@@ -189,28 +177,34 @@ class User extends Authenticatable implements FilamentUser
             === self::ROLE_SUPER_ADMIN;
     }
 
-    public function isPortalUser(): bool
+    public function isContributor(): bool
     {
-        return in_array(
-            $this->role,
-            [
-                self::ROLE_KARYAWAN,
-                self::ROLE_MANAGER,
-                self::ROLE_HR,
-            ],
-            true
-        );
+        return $this
+            ->contributorProfile()
+            ->where(
+                'is_active',
+                true
+            )
+            ->exists();
     }
 
-    public function isAdmin(): bool
+    public function canManageLearningContent(): bool
     {
         return
-            $this->isSuperAdmin();
+            $this->isSuperAdmin()
+            || $this->isContributor();
+    }
+
+    public function canManageCorporateContent(): bool
+    {
+        return
+            $this->isSuperAdmin()
+            || $this->isHr();
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Relationships
+    | RELATIONSHIPS
     |--------------------------------------------------------------------------
     */
 
@@ -220,6 +214,11 @@ class User extends Authenticatable implements FilamentUser
             Department::class
         );
     }
+
+    /*
+     * Legacy relationship boleh tetap ada
+     * selama positions table belum dibuang.
+     */
 
     public function position(): BelongsTo
     {
@@ -244,17 +243,17 @@ class User extends Authenticatable implements FilamentUser
         );
     }
 
+    public function contributorProfile(): HasOne
+    {
+        return $this->hasOne(
+            ContributorProfile::class
+        );
+    }
+
     public function enrollments(): HasMany
     {
         return $this->hasMany(
             Enrollment::class
-        );
-    }
-
-    public function lessonProgresses(): HasMany
-    {
-        return $this->hasMany(
-            LessonProgress::class
         );
     }
 
@@ -308,6 +307,36 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(
             ManagerReview::class,
             'manager_id'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CREATED CONTENT
+    |--------------------------------------------------------------------------
+    */
+
+    public function createdTrainingModules(): HasMany
+    {
+        return $this->hasMany(
+            TrainingModule::class,
+            'created_by'
+        );
+    }
+
+    public function createdQuizzes(): HasMany
+    {
+        return $this->hasMany(
+            Quiz::class,
+            'created_by'
+        );
+    }
+
+    public function createdFunTests(): HasMany
+    {
+        return $this->hasMany(
+            FunTestQuestion::class,
+            'created_by'
         );
     }
 }

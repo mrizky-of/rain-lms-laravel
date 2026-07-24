@@ -5,8 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Enrollment;
 use Filament\Widgets\ChartWidget;
 
-class TrainingCompletionChart
-    extends ChartWidget
+class TrainingCompletionChart extends ChartWidget
 {
     /*
     |--------------------------------------------------------------------------
@@ -41,14 +40,11 @@ class TrainingCompletionChart
     |--------------------------------------------------------------------------
     */
 
-    protected int|string|array
-        $columnSpan = [
+    protected int|string|array $columnSpan = [
 
-            'md' =>
-                1,
+            'md' => 1,
 
-            'xl' =>
-                2,
+            'xl' => 2,
 
         ];
 
@@ -67,9 +63,8 @@ class TrainingCompletionChart
     |--------------------------------------------------------------------------
     */
 
-    protected ?string
-        $pollingInterval =
-            '60s';
+    protected ?string $pollingInterval =
+        '60s';
 
     /*
     |--------------------------------------------------------------------------
@@ -108,8 +103,7 @@ class TrainingCompletionChart
             'datasets' => [
 
                 [
-                    'label' =>
-                        'Enrollment',
+                    'label' => 'Enrollment',
 
                     'data' => [
 
@@ -141,8 +135,7 @@ class TrainingCompletionChart
 
                     ],
 
-                    'borderWidth' =>
-                        1,
+                    'borderWidth' => 1,
                 ],
 
             ],
@@ -168,7 +161,6 @@ class TrainingCompletionChart
 
     protected function getType(): string
     {
-        return
-            'doughnut';
+        return 'doughnut';
     }
 }

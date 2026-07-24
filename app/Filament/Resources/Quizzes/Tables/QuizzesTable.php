@@ -2,8 +2,7 @@
 
 namespace App\Filament\Resources\Quizzes\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use App\Models\Quiz;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -11,41 +10,85 @@ use Filament\Tables\Table;
 
 class QuizzesTable
 {
-    public static function configure(Table $table): Table
-    {
+    public static function configure(
+        Table $table
+    ): Table {
         return $table
             ->columns([
-                TextColumn::make('trainingModule.title')
-                    ->searchable(),
                 TextColumn::make('title')
                     ->searchable(),
-                TextColumn::make('time_limit_minutes')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('max_attempts')
-                    ->numeric()
-                    ->sortable(),
-                IconColumn::make('is_active')
+
+                TextColumn::make(
+                    'trainingModule.title'
+                )
+                    ->label(
+                        'Module'
+                    ),
+
+                TextColumn::make(
+                    'question_count'
+                )
+                    ->label(
+                        'Target Soal'
+                    ),
+
+                TextColumn::make(
+                    'actual_questions'
+                )
+                    ->label(
+                        'Terisi'
+                    )
+                    ->getStateUsing(
+                        fn (
+                            Quiz $record
+                        ): string => $record
+                            ->questions()
+                            ->count()
+                            .
+                            ' / '
+                            .
+                            $record
+                                ->question_count
+                    ),
+
+                TextColumn::make(
+                    'readiness'
+                )
+                    ->label(
+                        'Status'
+                    )
+                    ->badge()
+                    ->getStateUsing(
+                        fn (
+                            Quiz $record
+                        ): string => $record
+                            ->isQuestionComplete()
+                            ? 'Ready'
+                            : 'Belum Lengkap'
+                    )
+                    ->color(
+                        fn (
+                            string $state
+                        ): string => $state === 'Ready'
+                                ? 'success'
+                                : 'warning'
+                    ),
+
+                TextColumn::make(
+                    'creator.name'
+                )
+                    ->label(
+                        'Contributor'
+                    ),
+
+                IconColumn::make(
+                    'is_active'
+                )
                     ->boolean(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                //
-            ])
+
             ->recordActions([
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 }

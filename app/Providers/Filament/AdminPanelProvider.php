@@ -3,24 +3,18 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
-use App\Filament\Resources\Assignments\AssignmentResource;
+use App\Filament\Pages\FunTestBuilder;
+use App\Filament\Pages\QuestionBuilder;
 use App\Filament\Resources\CompanyContents\CompanyContentResource;
 use App\Filament\Resources\CompanyPolicies\CompanyPolicyResource;
 use App\Filament\Resources\ContributorProfiles\ContributorProfileResource;
 use App\Filament\Resources\Departments\DepartmentResource;
-use App\Filament\Resources\FunTestQuestions\FunTestQuestionResource;
-use App\Filament\Resources\Lessons\LessonResource;
-use App\Filament\Resources\ManagerReviews\ManagerReviewResource;
-use App\Filament\Resources\Positions\PositionResource;
-use App\Filament\Resources\QuestionOptions\QuestionOptionResource;
-use App\Filament\Resources\Questions\QuestionResource;
 use App\Filament\Resources\Quizzes\QuizResource;
 use App\Filament\Resources\Sops\SopResource;
 use App\Filament\Resources\TrainingModules\TrainingModuleResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Widgets\AdminStatsOverview;
-use App\Filament\Widgets\RecentAssignments;
-use App\Filament\Widgets\TrainingCompletionChart;
+use App\Filament\Widgets\RecentTrainingModules;
 use App\Filament\Widgets\UsersByDepartmentChart;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -46,43 +40,17 @@ class AdminPanelProvider extends PanelProvider
     ): Panel {
         return $panel
 
-            /*
-            |--------------------------------------------------------------------------
-            | Panel
-            |--------------------------------------------------------------------------
-            */
-
             ->default()
 
             ->id('admin')
 
             ->path('admin')
 
-            /*
-            |--------------------------------------------------------------------------
-            | Authentication
-            |--------------------------------------------------------------------------
-            */
-
             ->login()
-
-            /*
-            |--------------------------------------------------------------------------
-            | Branding
-            |--------------------------------------------------------------------------
-            */
 
             ->brandName(
                 'RAIN LMS Administration'
             )
-
-            /*
-             * Logo yang sama dengan halaman login portal.
-             *
-             * Pastikan file tersedia:
-             *
-             * public/images/rain-group-logo.png
-             */
 
             ->brandLogo(
                 asset(
@@ -94,250 +62,115 @@ class AdminPanelProvider extends PanelProvider
                 '2.5rem'
             )
 
-            /*
-            |--------------------------------------------------------------------------
-            | Colors
-            |--------------------------------------------------------------------------
-            */
-
             ->colors([
+                'primary' => Color::Green,
 
-                'primary' =>
-                    Color::Green,
+                'success' => Color::Emerald,
 
-                'success' =>
-                    Color::Emerald,
+                'info' => Color::Sky,
 
-                'info' =>
-                    Color::Sky,
+                'warning' => Color::Amber,
 
-                'warning' =>
-                    Color::Amber,
-
-                'danger' =>
-                    Color::Rose,
-
+                'danger' => Color::Rose,
             ])
-
-            /*
-            |--------------------------------------------------------------------------
-            | Layout
-            |--------------------------------------------------------------------------
-            */
 
             ->maxContentWidth(
                 Width::Full
             )
 
-            /*
-             * Sidebar bisa diciutkan di desktop.
-             */
-
             ->sidebarCollapsibleOnDesktop()
-
-            /*
-             * Warning bila admin menutup form
-             * yang punya perubahan belum disimpan.
-             */
 
             ->unsavedChangesAlerts()
 
             /*
             |--------------------------------------------------------------------------
-            | Resources
+            | ONLY REGISTER ACTIVE RESOURCES
             |--------------------------------------------------------------------------
             */
 
-            ->discoverResources(
-                in:
-                    app_path(
-                        'Filament/Resources'
-                    ),
+            ->resources([
+                DepartmentResource::class,
+                UserResource::class,
+                ContributorProfileResource::class,
 
-                for:
-                    'App\\Filament\\Resources'
-            )
+                TrainingModuleResource::class,
+                QuizResource::class,
 
-            /*
-            |--------------------------------------------------------------------------
-            | Pages
-            |--------------------------------------------------------------------------
-            */
+                CompanyContentResource::class,
+                CompanyPolicyResource::class,
+                SopResource::class,
+            ])
 
             ->pages([
                 Dashboard::class,
+
+                QuestionBuilder::class,
+
+                FunTestBuilder::class,
             ])
 
-            /*
-            |--------------------------------------------------------------------------
-            | Dashboard Widgets
-            |--------------------------------------------------------------------------
-            |
-            | Kita register eksplisit supaya dashboard hanya berisi
-            | widget RAIN LMS yang kita buat.
-            |
-            */
-
             ->widgets([
-
                 AdminStatsOverview::class,
-
-                TrainingCompletionChart::class,
 
                 UsersByDepartmentChart::class,
 
-                RecentAssignments::class,
-
+                RecentTrainingModules::class,
             ])
-
-            /*
-            |--------------------------------------------------------------------------
-            | Navigation
-            |--------------------------------------------------------------------------
-            |
-            | Semua sidebar dikelompokkan dari sini.
-            |
-            | Tidak perlu menambahkan $navigationGroup
-            | ke 15 Resource satu per satu.
-            |
-            */
 
             ->navigation(
                 function (
                     NavigationBuilder $builder
                 ): NavigationBuilder {
-
                     return $builder
                         ->groups([
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | Overview
-                            |--------------------------------------------------------------------------
-                            */
 
                             NavigationGroup::make(
                                 'Overview'
                             )
                                 ->items([
-
                                     ...Dashboard::getNavigationItems(),
-
                                 ])
-                                ->collapsible(
-                                    false
-                                ),
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | Master Data
-                            |--------------------------------------------------------------------------
-                            */
+                                ->collapsible(false),
 
                             NavigationGroup::make(
                                 'Master Data'
                             )
                                 ->items([
-
                                     ...DepartmentResource::getNavigationItems(),
-
-                                    ...PositionResource::getNavigationItems(),
 
                                     ...UserResource::getNavigationItems(),
 
+                                    ...ContributorProfileResource::getNavigationItems(),
                                 ]),
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | Learning Management
-                            |--------------------------------------------------------------------------
-                            */
 
                             NavigationGroup::make(
                                 'Learning Management'
                             )
                                 ->items([
-
                                     ...TrainingModuleResource::getNavigationItems(),
-
-                                    ...LessonResource::getNavigationItems(),
 
                                     ...QuizResource::getNavigationItems(),
 
-                                    ...QuestionResource::getNavigationItems(),
+                                    ...QuestionBuilder::getNavigationItems(),
 
-                                    ...QuestionOptionResource::getNavigationItems(),
-
+                                    ...FunTestBuilder::getNavigationItems(),
                                 ]),
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | Performance & Review
-                            |--------------------------------------------------------------------------
-                            */
-
-                            NavigationGroup::make(
-                                'Performance & Review'
-                            )
-                                ->items([
-
-                                    ...AssignmentResource::getNavigationItems(),
-
-                                    ...ManagerReviewResource::getNavigationItems(),
-
-                                ])
-                                ->collapsed(),
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | Informasi & Regulasi
-                            |--------------------------------------------------------------------------
-                            */
 
                             NavigationGroup::make(
                                 'Informasi & Regulasi'
                             )
                                 ->items([
-
                                     ...CompanyContentResource::getNavigationItems(),
 
                                     ...CompanyPolicyResource::getNavigationItems(),
 
                                     ...SopResource::getNavigationItems(),
-
-                                ])
-                                ->collapsed(),
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | Engagement
-                            |--------------------------------------------------------------------------
-                            */
-
-                            NavigationGroup::make(
-                                'Engagement'
-                            )
-                                ->items([
-
-                                    ...ContributorProfileResource::getNavigationItems(),
-
-                                    ...FunTestQuestionResource::getNavigationItems(),
-
-                                ])
-                                ->collapsed(),
-
+                                ]),
                         ]);
                 }
             )
 
-            /*
-            |--------------------------------------------------------------------------
-            | Middleware
-            |--------------------------------------------------------------------------
-            */
-
             ->middleware([
-
                 EncryptCookies::class,
 
                 AddQueuedCookiesToResponse::class,
@@ -355,14 +188,7 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
 
                 DispatchServingFilamentEvent::class,
-
             ])
-
-            /*
-            |--------------------------------------------------------------------------
-            | Authentication Middleware
-            |--------------------------------------------------------------------------
-            */
 
             ->authMiddleware([
                 Authenticate::class,

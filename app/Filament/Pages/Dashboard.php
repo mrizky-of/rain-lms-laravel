@@ -32,8 +32,7 @@ class Dashboard extends BaseDashboard
 
     public function getHeading(): string
     {
-        return
-            'Dashboard Administration';
+        return 'Dashboard Administration';
     }
 
     /*
@@ -44,8 +43,7 @@ class Dashboard extends BaseDashboard
 
     public function getSubheading(): ?string
     {
-        return
-            'Monitor aktivitas pengguna, training, assignment, dan performa RAIN LMS.';
+        return 'Monitor aktivitas pengguna, training, assignment, dan performa RAIN LMS.';
     }
 
     /*
@@ -67,11 +65,9 @@ class Dashboard extends BaseDashboard
     {
         return [
 
-            'md' =>
-                2,
+            'md' => 2,
 
-            'xl' =>
-                4,
+            'xl' => 4,
 
         ];
     }

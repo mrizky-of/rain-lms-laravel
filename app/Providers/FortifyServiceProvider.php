@@ -59,10 +59,9 @@ class FortifyServiceProvider extends ServiceProvider
         */
 
         Fortify::loginView(
-            fn () =>
-                view(
-                    'pages::auth.login'
-                )
+            fn () => view(
+                'pages::auth.login'
+            )
         );
 
         /*
@@ -72,10 +71,9 @@ class FortifyServiceProvider extends ServiceProvider
         */
 
         Fortify::confirmPasswordView(
-            fn () =>
-                view(
-                    'pages::auth.confirm-password'
-                )
+            fn () => view(
+                'pages::auth.confirm-password'
+            )
         );
 
         /*
@@ -85,10 +83,9 @@ class FortifyServiceProvider extends ServiceProvider
         */
 
         Fortify::requestPasswordResetLinkView(
-            fn () =>
-                view(
-                    'pages::auth.forgot-password'
-                )
+            fn () => view(
+                'pages::auth.forgot-password'
+            )
         );
 
         /*
@@ -98,10 +95,9 @@ class FortifyServiceProvider extends ServiceProvider
         */
 
         Fortify::resetPasswordView(
-            fn () =>
-                view(
-                    'pages::auth.reset-password'
-                )
+            fn () => view(
+                'pages::auth.reset-password'
+            )
         );
 
         /*
@@ -114,10 +110,9 @@ class FortifyServiceProvider extends ServiceProvider
         */
 
         Fortify::twoFactorChallengeView(
-            fn () =>
-                view(
-                    'pages::auth.two-factor-challenge'
-                )
+            fn () => view(
+                'pages::auth.two-factor-challenge'
+            )
         );
     }
 
@@ -146,8 +141,8 @@ class FortifyServiceProvider extends ServiceProvider
                                 Fortify::username()
                             )
                         )
-                        . '|'
-                        . $request->ip()
+                        .'|'
+                        .$request->ip()
                     );
 
                 return Limit::perMinute(

@@ -22,14 +22,11 @@ class Department extends Model
         ];
     }
 
-    public function positions(): HasMany
-    {
-        return $this->hasMany(Position::class);
-    }
-
     public function users(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(
+            User::class
+        );
     }
 
     public function trainingModules(): BelongsToMany
@@ -38,5 +35,12 @@ class Department extends Model
             TrainingModule::class,
             'department_training_module'
         )->withTimestamps();
+    }
+
+    public function funTests(): HasMany
+    {
+        return $this->hasMany(
+            FunTestQuestion::class
+        );
     }
 }

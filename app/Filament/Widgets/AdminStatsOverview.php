@@ -2,195 +2,157 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Assignment;
-use App\Models\Enrollment;
+use App\Models\CompanyPolicy;
+use App\Models\ContributorProfile;
+use App\Models\FunTestQuestion;
+use App\Models\Quiz;
+use App\Models\Sop;
 use App\Models\TrainingModule;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
-class AdminStatsOverview
-    extends StatsOverviewWidget
+class AdminStatsOverview extends StatsOverviewWidget
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Position
-    |--------------------------------------------------------------------------
-    */
-
     protected static ?int $sort =
         1;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Width
-    |--------------------------------------------------------------------------
-    */
-
-    protected int|string|array
-        $columnSpan =
-            'full';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Polling
-    |--------------------------------------------------------------------------
-    |
-    | Tidak perlu refresh setiap 5 detik.
-    |
-    */
-
-    protected ?string
-        $pollingInterval =
-            '30s';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Stats
-    |--------------------------------------------------------------------------
-    */
+    protected int|string|array $columnSpan =
+        'full';
 
     protected function getStats(): array
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Total Karyawan
-        |--------------------------------------------------------------------------
-        */
-
-        $totalEmployees =
-            User::query()
-                ->where(
-                    'role',
-                    User::ROLE_KARYAWAN
-                )
-                ->where(
-                    'status',
-                    User::STATUS_ACTIVE
-                )
-                ->count();
+        $user =
+            auth()->user();
 
         /*
-        |--------------------------------------------------------------------------
-        | Active Training Modules
-        |--------------------------------------------------------------------------
-        */
+         * HR Dashboard
+         */
 
-        $activeModules =
-            TrainingModule::query()
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->count();
+        if (
+            $user->isHr()
+            && ! $user->isContributor()
+        ) {
+            return [
+                Stat::make(
+                    'Company Policies',
+                    CompanyPolicy::query()
+                        ->count()
+                ),
+
+                Stat::make(
+                    'SOP',
+                    Sop::query()
+                        ->count()
+                ),
+
+                Stat::make(
+                    'Active Employees',
+                    User::query()
+                        ->where(
+                            'status',
+                            User::STATUS_ACTIVE
+                        )
+                        ->count()
+                ),
+            ];
+        }
 
         /*
-        |--------------------------------------------------------------------------
-        | Completed Enrollments
-        |--------------------------------------------------------------------------
-        */
+         * Contributor Dashboard
+         */
 
-        $completedTrainings =
-            Enrollment::query()
-                ->where(
-                    'status',
-                    'completed'
-                )
-                ->count();
+        if (
+            $user->isContributor()
+            && ! $user->isSuperAdmin()
+        ) {
+            $modules =
+                TrainingModule::query()
+                    ->manageableBy($user)
+                    ->count();
+
+            $quizzes =
+                Quiz::query()
+                    ->manageableBy($user)
+                    ->count();
+
+            $funTests =
+                FunTestQuestion::query()
+                    ->manageableBy($user)
+                    ->count();
+
+            $ownUploads =
+                $user
+                    ->createdTrainingModules()
+                    ->count()
+                +
+                $user
+                    ->createdQuizzes()
+                    ->count()
+                +
+                $user
+                    ->createdFunTests()
+                    ->count();
+
+            return [
+                Stat::make(
+                    'Module Divisi',
+                    $modules
+                ),
+
+                Stat::make(
+                    'Quiz Divisi',
+                    $quizzes
+                ),
+
+                Stat::make(
+                    'Fun Test Divisi',
+                    $funTests
+                ),
+
+                Stat::make(
+                    'Kontribusi Saya',
+                    $ownUploads
+                ),
+            ];
+        }
 
         /*
-        |--------------------------------------------------------------------------
-        | Active Assignments
-        |--------------------------------------------------------------------------
-        */
-
-        $activeAssignments =
-            Assignment::query()
-                ->where(
-                    'status',
-                    '!=',
-                    'completed'
-                )
-                ->count();
+         * Super Admin Dashboard
+         */
 
         return [
-
-            /*
-            |--------------------------------------------------------------------------
-            | Total Employee
-            |--------------------------------------------------------------------------
-            */
+            Stat::make(
+                'Active Users',
+                User::query()
+                    ->where(
+                        'status',
+                        User::STATUS_ACTIVE
+                    )
+                    ->count()
+            ),
 
             Stat::make(
-                'Total Karyawan',
-                number_format(
-                    $totalEmployees
-                )
-            )
-                ->description(
-                    'Karyawan aktif di portal LMS'
-                )
-                ->color(
-                    'primary'
-                ),
-
-            /*
-            |--------------------------------------------------------------------------
-            | Active Modules
-            |--------------------------------------------------------------------------
-            */
+                'Training Modules',
+                TrainingModule::query()
+                    ->count()
+            ),
 
             Stat::make(
-                'Modul Aktif',
-                number_format(
-                    $activeModules
-                )
-            )
-                ->description(
-                    'Training module tersedia'
-                )
-                ->color(
-                    'info'
-                ),
-
-            /*
-            |--------------------------------------------------------------------------
-            | Completed Training
-            |--------------------------------------------------------------------------
-            */
+                'Quizzes',
+                Quiz::query()
+                    ->count()
+            ),
 
             Stat::make(
-                'Training Selesai',
-                number_format(
-                    $completedTrainings
-                )
-            )
-                ->description(
-                    'Total enrollment completed'
-                )
-                ->color(
-                    'success'
-                ),
-
-            /*
-            |--------------------------------------------------------------------------
-            | Active Assignment
-            |--------------------------------------------------------------------------
-            */
-
-            Stat::make(
-                'Assignment Aktif',
-                number_format(
-                    $activeAssignments
-                )
-            )
-                ->description(
-                    'Assignment belum selesai'
-                )
-                ->color(
-                    'warning'
-                ),
-
+                'Contributors',
+                ContributorProfile::query()
+                    ->where(
+                        'is_active',
+                        true
+                    )
+                    ->count()
+            ),
         ];
     }
 }

@@ -11,31 +11,39 @@ use Filament\Tables\Table;
 
 class DepartmentsTable
 {
-    public static function configure(Table $table): Table
-    {
+    public static function configure(
+        Table $table
+    ): Table {
         return $table
+
             ->columns([
                 TextColumn::make('code')
-                    ->searchable(),
+                    ->label('Kode')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('name')
-                    ->searchable(),
-                IconColumn::make('is_active')
+                    ->label('Department')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make(
+                    'users_count'
+                )
+                    ->label('Jumlah User')
+                    ->counts('users'),
+
+                IconColumn::make(
+                    'is_active'
+                )
+                    ->label('Aktif')
                     ->boolean(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                //
-            ])
+
             ->recordActions([
                 EditAction::make(),
             ])
+
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),

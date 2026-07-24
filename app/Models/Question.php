@@ -8,21 +8,46 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Question extends Model
 {
+    public const TYPE_MULTIPLE_CHOICE =
+        'multiple_choice';
+
+    public const TYPE_ESSAY =
+        'essay';
+
     protected $fillable = [
         'quiz_id',
-        'question_text',
         'type',
+        'question_text',
+        'options',
+        'correct_answer',
+        'essay_answer_key',
+        'explanation',
         'points',
         'sort_order',
     ];
 
-    public function quiz(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(Quiz::class);
+        return [
+            'options' => 'array',
+
+            'points' => 'decimal:2',
+
+            'sort_order' => 'integer',
+        ];
     }
 
-    public function options(): HasMany
+    public function quiz(): BelongsTo
     {
-        return $this->hasMany(QuestionOption::class);
+        return $this->belongsTo(
+            Quiz::class
+        );
+    }
+
+    public function answers(): HasMany
+    {
+        return $this->hasMany(
+            QuizAnswer::class
+        );
     }
 }

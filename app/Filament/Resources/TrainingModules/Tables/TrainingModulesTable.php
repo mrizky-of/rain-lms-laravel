@@ -2,65 +2,102 @@
 
 namespace App\Filament\Resources\TrainingModules\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use App\Models\TrainingModule;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class TrainingModulesTable
 {
-    public static function configure(Table $table): Table
-    {
+    public static function configure(
+        Table $table
+    ): Table {
         return $table
+
             ->columns([
                 TextColumn::make('title')
-                    ->searchable(),
-                TextColumn::make('slug')
-                    ->searchable(),
-                TextColumn::make('thumbnail')
-                    ->searchable(),
+                    ->label(
+                        'Module'
+                    )
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('category')
-                    ->searchable(),
-                TextColumn::make('duration_minutes')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('kpi_points')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('passing_score')
-                    ->numeric()
-                    ->sortable(),
-                IconColumn::make('is_mandatory')
+                    ->badge()
+                    ->formatStateUsing(
+                        fn (
+                            string $state
+                        ): string => match ($state) {
+                            TrainingModule::CATEGORY_MANDATORY => 'Mandatory',
+
+                            TrainingModule::CATEGORY_BASIC_DIVISION => 'Basic Division',
+
+                            TrainingModule::CATEGORY_DIVISION_KPI => 'Division KPI',
+
+                            default => $state,
+                        }
+                    ),
+
+                TextColumn::make(
+                    'departments.name'
+                )
+                    ->label(
+                        'Department'
+                    )
+                    ->badge()
+                    ->separator(', '),
+
+                TextColumn::make(
+                    'creator.name'
+                )
+                    ->label(
+                        'Contributor'
+                    ),
+
+                TextColumn::make(
+                    'material_files'
+                )
+                    ->label('Files')
+                    ->getStateUsing(
+                        fn (
+                            TrainingModule $record
+                        ): int => count(
+                            $record
+                                ->material_files
+                            ?? []
+                        )
+                    ),
+
+                TextColumn::make(
+                    'kpi_points'
+                )
+                    ->label(
+                        'KPI'
+                    ),
+
+                IconColumn::make(
+                    'is_active'
+                )
                     ->boolean(),
-                IconColumn::make('is_active')
-                    ->boolean(),
-                TextColumn::make('published_at')
-                    ->dateTime()
-                    ->sortable(),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
+
             ->filters([
-                //
+                SelectFilter::make(
+                    'category'
+                )
+                    ->options([
+                        TrainingModule::CATEGORY_MANDATORY => 'Mandatory',
+
+                        TrainingModule::CATEGORY_BASIC_DIVISION => 'Basic Division',
+
+                        TrainingModule::CATEGORY_DIVISION_KPI => 'Division KPI',
+                    ]),
             ])
+
             ->recordActions([
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 }

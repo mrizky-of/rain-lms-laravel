@@ -2,66 +2,118 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Models\User;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class UsersTable
 {
-    public static function configure(Table $table): Table
-    {
+    public static function configure(
+        Table $table
+    ): Table {
         return $table
+
             ->columns([
                 TextColumn::make('nik')
+                    ->label('NIK')
                     ->searchable(),
+
                 TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('email')
-                    ->label('Email address')
-                    ->searchable(),
-                TextColumn::make('phone')
-                    ->searchable(),
-                TextColumn::make('email_verified_at')
-                    ->dateTime()
+                    ->label('Nama')
+                    ->searchable()
                     ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('avatar')
+
+                TextColumn::make(
+                    'department.name'
+                )
+                    ->label(
+                        'Department'
+                    )
+                    ->sortable(),
+
+                TextColumn::make(
+                    'position_name'
+                )
+                    ->label(
+                        'Jabatan'
+                    )
                     ->searchable(),
-                TextColumn::make('department.name')
-                    ->searchable(),
-                TextColumn::make('position.name')
-                    ->searchable(),
-                TextColumn::make('manager.name')
-                    ->searchable(),
+
                 TextColumn::make('role')
-                    ->searchable(),
+                    ->badge()
+                    ->formatStateUsing(
+                        fn (
+                            string $state
+                        ): string => match ($state) {
+                            User::ROLE_KARYAWAN => 'Karyawan',
+
+                            User::ROLE_MANAGER => 'Manager',
+
+                            User::ROLE_HR => 'HR',
+
+                            User::ROLE_SUPER_ADMIN => 'Super Admin',
+
+                            default => $state,
+                        }
+                    ),
+
                 TextColumn::make('status')
-                    ->searchable(),
-                TextColumn::make('semester')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('annual_leave_quota')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('join_date')
-                    ->date()
-                    ->sortable(),
+                    ->badge()
+                    ->color(
+                        fn (
+                            string $state
+                        ): string => $state
+                            === User::STATUS_ACTIVE
+                                ? 'success'
+                                : 'danger'
+                    ),
+
+                TextColumn::make(
+                    'contributorProfile.is_active'
+                )
+                    ->label(
+                        'Contributor'
+                    )
+                    ->formatStateUsing(
+                        fn (
+                            $state
+                        ): string => $state
+                                ? 'Ya'
+                                : '-'
+                    ),
             ])
+
             ->filters([
-                //
+                SelectFilter::make(
+                    'role'
+                )
+                    ->options([
+                        User::ROLE_KARYAWAN => 'Karyawan',
+
+                        User::ROLE_MANAGER => 'Manager',
+
+                        User::ROLE_HR => 'HR',
+
+                        User::ROLE_SUPER_ADMIN => 'Super Admin',
+                    ]),
+
+                SelectFilter::make(
+                    'department'
+                )
+                    ->relationship(
+                        'department',
+                        'name'
+                    ),
             ])
+
             ->recordActions([
                 EditAction::make(),
             ])
+
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),

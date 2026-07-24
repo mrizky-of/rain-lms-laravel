@@ -2,44 +2,71 @@
 
 namespace App\Filament\Resources\ContributorProfiles\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use App\Models\ContributorProfile;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class ContributorProfilesTable
 {
-    public static function configure(Table $table): Table
-    {
+    public static function configure(
+        Table $table
+    ): Table {
         return $table
+
             ->columns([
-                TextColumn::make('user.name')
+                TextColumn::make(
+                    'user.name'
+                )
+                    ->label('Nama')
                     ->searchable(),
-                TextColumn::make('nickname')
-                    ->searchable(),
-                TextColumn::make('rating')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make(
+                    'user.department.name'
+                )
+                    ->label(
+                        'Department'
+                    ),
+
+                TextColumn::make(
+                    'user.position_name'
+                )
+                    ->label('Jabatan'),
+
+                TextColumn::make(
+                    'contribution_count'
+                )
+                    ->label(
+                        'Jumlah Kontribusi'
+                    )
+                    ->getStateUsing(
+                        fn (
+                            ContributorProfile $record
+                        ): int => $record
+                            ->contributionCount()
+                    ),
+
+                TextColumn::make(
+                    'computed_rating'
+                )
+                    ->label('Rating')
+                    ->suffix('%')
+                    ->getStateUsing(
+                        fn (
+                            ContributorProfile $record
+                        ): int => $record
+                            ->computedRating()
+                    ),
+
+                IconColumn::make(
+                    'is_active'
+                )
+                    ->boolean(),
             ])
-            ->filters([
-                //
-            ])
+
             ->recordActions([
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 }

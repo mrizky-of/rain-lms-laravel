@@ -7,8 +7,7 @@ use App\Models\User;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Database\Eloquent\Builder;
 
-class UsersByDepartmentChart
-    extends ChartWidget
+class UsersByDepartmentChart extends ChartWidget
 {
     /*
     |--------------------------------------------------------------------------
@@ -43,14 +42,11 @@ class UsersByDepartmentChart
     |--------------------------------------------------------------------------
     */
 
-    protected int|string|array
-        $columnSpan = [
+    protected int|string|array $columnSpan = [
 
-            'md' =>
-                1,
+            'md' => 1,
 
-            'xl' =>
-                2,
+            'xl' => 2,
 
         ];
 
@@ -69,9 +65,8 @@ class UsersByDepartmentChart
     |--------------------------------------------------------------------------
     */
 
-    protected ?string
-        $pollingInterval =
-            '60s';
+    protected ?string $pollingInterval =
+        '60s';
 
     /*
     |--------------------------------------------------------------------------
@@ -97,24 +92,23 @@ class UsersByDepartmentChart
 
                 ->withCount([
 
-                    'users' =>
-                        function (
-                            Builder $query
-                        ): void {
+                    'users' => function (
+                        Builder $query
+                    ): void {
 
-                            $query
+                        $query
 
-                                ->where(
-                                    'status',
-                                    User::STATUS_ACTIVE
-                                )
+                            ->where(
+                                'status',
+                                User::STATUS_ACTIVE
+                            )
 
-                                ->where(
-                                    'role',
-                                    '!=',
-                                    User::ROLE_SUPER_ADMIN
-                                );
-                        },
+                            ->where(
+                                'role',
+                                '!=',
+                                User::ROLE_SUPER_ADMIN
+                            );
+                    },
 
                 ])
 
@@ -134,37 +128,31 @@ class UsersByDepartmentChart
 
                 [
 
-                    'label' =>
-                        'Jumlah User',
+                    'label' => 'Jumlah User',
 
-                    'data' =>
-                        $departments
-                            ->pluck(
-                                'users_count'
-                            )
-                            ->values()
-                            ->all(),
+                    'data' => $departments
+                        ->pluck(
+                            'users_count'
+                        )
+                        ->values()
+                        ->all(),
 
-                    'backgroundColor' =>
-                        '#22c55e',
+                    'backgroundColor' => '#22c55e',
 
-                    'borderColor' =>
-                        '#16a34a',
+                    'borderColor' => '#16a34a',
 
-                    'borderWidth' =>
-                        1,
+                    'borderWidth' => 1,
 
                 ],
 
             ],
 
-            'labels' =>
-                $departments
-                    ->pluck(
-                        'name'
-                    )
-                    ->values()
-                    ->all(),
+            'labels' => $departments
+                ->pluck(
+                    'name'
+                )
+                ->values()
+                ->all(),
 
         ];
     }
@@ -177,7 +165,6 @@ class UsersByDepartmentChart
 
     protected function getType(): string
     {
-        return
-            'bar';
+        return 'bar';
     }
 }

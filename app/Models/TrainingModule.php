@@ -11,6 +11,15 @@ use Illuminate\Support\Str;
 
 class TrainingModule extends Model
 {
+    public const CATEGORY_MANDATORY =
+        'mandatory';
+
+    public const CATEGORY_BASIC_DIVISION =
+        'basic_division';
+
+    public const CATEGORY_DIVISION_KPI =
+        'division_kpi';
+
     protected $fillable = [
         'title',
         'slug',
@@ -20,6 +29,10 @@ class TrainingModule extends Model
         'duration_minutes',
         'kpi_points',
         'passing_score',
+
+        'material_files',
+        'material_file_names',
+
         'is_mandatory',
         'is_active',
         'published_at',
@@ -30,10 +43,19 @@ class TrainingModule extends Model
     {
         return [
             'duration_minutes' => 'integer',
+
             'kpi_points' => 'integer',
+
             'passing_score' => 'decimal:2',
+
+            'material_files' => 'array',
+
+            'material_file_names' => 'array',
+
             'is_mandatory' => 'boolean',
+
             'is_active' => 'boolean',
+
             'published_at' => 'datetime',
         ];
     }
@@ -41,8 +63,35 @@ class TrainingModule extends Model
     protected static function booted(): void
     {
         static::creating(
-            function (TrainingModule $module): void {
-                if (blank($module->slug)) {
+            function (
+                TrainingModule $module
+            ): void {
+                if (
+                    blank(
+                        $module->slug
+                    )
+                ) {
+                    $module->slug =
+                        Str::slug(
+                            $module->title
+                        );
+                }
+            }
+        );
+
+        static::updating(
+            function (
+                TrainingModule $module
+            ): void {
+                if (
+                    $module
+                        ->isDirty(
+                            'title'
+                        )
+                    && blank(
+                        $module->slug
+                    )
+                ) {
                     $module->slug =
                         Str::slug(
                             $module->title
@@ -68,13 +117,6 @@ class TrainingModule extends Model
         )->withTimestamps();
     }
 
-    public function lessons(): HasMany
-    {
-        return $this->hasMany(
-            Lesson::class
-        )->orderBy('sort_order');
-    }
-
     public function quizzes(): HasMany
     {
         return $this->hasMany(
@@ -89,15 +131,35 @@ class TrainingModule extends Model
         );
     }
 
+    /*
+     * Legacy relation dibiarkan sementara.
+     * Admin baru tidak lagi membuat Lessons.
+     */
+
+    public function lessons(): HasMany
+    {
+        return $this->hasMany(
+            Lesson::class
+        )->orderBy('sort_order');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PORTAL VISIBILITY
+    |--------------------------------------------------------------------------
+    */
+
     public function scopeVisibleFor(
         Builder $query,
         User $user
     ): Builder {
         return $query
+
             ->where(
                 'is_active',
                 true
             )
+
             ->where(
                 function (
                     Builder $publishQuery
@@ -113,29 +175,75 @@ class TrainingModule extends Model
                         );
                 }
             )
+
             ->where(
                 function (
                     Builder $visibilityQuery
-                ) use ($user): void {
-
+                ) use (
+                    $user
+                ): void {
                     $visibilityQuery
+
                         ->where(
-                            'is_mandatory',
-                            true
+                            'category',
+                            self::CATEGORY_MANDATORY
                         )
+
                         ->orWhereHas(
                             'departments',
                             function (
                                 Builder $departmentQuery
-                            ) use ($user): void {
+                            ) use (
+                                $user
+                            ): void {
                                 $departmentQuery
                                     ->where(
                                         'departments.id',
-                                        $user->department_id
+                                        $user
+                                            ->department_id
                                     );
                             }
                         );
                 }
             );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN / CONTRIBUTOR SCOPE
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeManageableBy(
+        Builder $query,
+        User $user
+    ): Builder {
+        if (
+            $user->isSuperAdmin()
+        ) {
+            return $query;
+        }
+
+        if (
+            $user->isContributor()
+            && $user->department_id
+        ) {
+            return $query
+                ->whereHas(
+                    'departments',
+                    fn (
+                        Builder $departmentQuery
+                    ) => $departmentQuery
+                        ->where(
+                            'departments.id',
+                            $user
+                                ->department_id
+                        )
+                );
+        }
+
+        return $query->whereRaw(
+            '1 = 0'
+        );
     }
 }

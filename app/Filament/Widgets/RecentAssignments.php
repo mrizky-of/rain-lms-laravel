@@ -7,8 +7,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 
-class RecentAssignments
-    extends TableWidget
+class RecentAssignments extends TableWidget
 {
     /*
     |--------------------------------------------------------------------------
@@ -25,9 +24,8 @@ class RecentAssignments
     |--------------------------------------------------------------------------
     */
 
-    protected int|string|array
-        $columnSpan =
-            'full';
+    protected int|string|array $columnSpan =
+        'full';
 
     /*
     |--------------------------------------------------------------------------
@@ -136,34 +134,27 @@ class RecentAssignments
 
                         fn (
                             string $state
-                        ): string =>
+                        ): string => match (
+                            $state
+                        ) {
 
-                            match (
-                                $state
-                            ) {
+                            'assigned' => 'Assigned',
 
-                                'assigned' =>
-                                    'Assigned',
+                            'not_started' => 'Belum Mulai',
 
-                                'not_started' =>
-                                    'Belum Mulai',
+                            'in_progress' => 'In Progress',
 
-                                'in_progress' =>
-                                    'In Progress',
+                            'completed' => 'Completed',
 
-                                'completed' =>
-                                    'Completed',
+                            default => ucwords(
+                                str_replace(
+                                    '_',
+                                    ' ',
+                                    $state
+                                )
+                            ),
 
-                                default =>
-                                    ucwords(
-                                        str_replace(
-                                            '_',
-                                            ' ',
-                                            $state
-                                        )
-                                    ),
-
-                            }
+                        }
 
                     )
 
@@ -171,28 +162,21 @@ class RecentAssignments
 
                         fn (
                             string $state
-                        ): string =>
+                        ): string => match (
+                            $state
+                        ) {
 
-                            match (
-                                $state
-                            ) {
+                            'completed' => 'success',
 
-                                'completed' =>
-                                    'success',
+                            'in_progress' => 'info',
 
-                                'in_progress' =>
-                                    'info',
+                            'assigned' => 'warning',
 
-                                'assigned' =>
-                                    'warning',
+                            'not_started' => 'gray',
 
-                                'not_started' =>
-                                    'gray',
+                            default => 'gray',
 
-                                default =>
-                                    'gray',
-
-                            }
+                        }
 
                     ),
 

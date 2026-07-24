@@ -10,9 +10,7 @@ class UserPolicy
         User $user,
         string $ability
     ): ?bool {
-        if (
-            $user->isSuperAdmin()
-        ) {
+        if ($user->isSuperAdmin()) {
             return true;
         }
 
@@ -22,66 +20,37 @@ class UserPolicy
     public function viewAny(
         User $user
     ): bool {
-        return $user->isHr();
+        return false;
     }
 
     public function view(
         User $user,
         User $model
     ): bool {
-        return $user->isHr();
+        return false;
     }
 
     public function create(
         User $user
     ): bool {
-        return $user->isHr();
+        return false;
     }
 
     public function update(
         User $user,
         User $model
     ): bool {
-        return $user->isHr()
-            && ! $model->isSuperAdmin();
+        return false;
     }
 
     public function delete(
         User $user,
         User $model
     ): bool {
-        return $user->isHr()
-            && $user->id !== $model->id
-            && ! $model->isSuperAdmin();
+        return false;
     }
 
     public function deleteAny(
-        User $user
-    ): bool {
-        return false;
-    }
-
-    public function restore(
-        User $user,
-        User $model
-    ): bool {
-        return false;
-    }
-
-    public function restoreAny(
-        User $user
-    ): bool {
-        return false;
-    }
-
-    public function forceDelete(
-        User $user,
-        User $model
-    ): bool {
-        return false;
-    }
-
-    public function forceDeleteAny(
         User $user
     ): bool {
         return false;

@@ -11,7 +11,8 @@ use Livewire\Component;
 #[Title('Kurikulum - RAIN LMS')]
 class Curriculum extends Component
 {
-    public string $category = 'all';
+    public string $category =
+        'all';
 
     public function render()
     {
@@ -22,7 +23,6 @@ class Curriculum extends Component
                 )
                 ->with([
                     'departments',
-                    'lessons',
                     'quizzes',
                 ])
                 ->orderByDesc(
@@ -30,7 +30,8 @@ class Curriculum extends Component
                 );
 
         if (
-            $this->category !== 'all'
+            $this->category
+            !== 'all'
         ) {
             $query->where(
                 'category',

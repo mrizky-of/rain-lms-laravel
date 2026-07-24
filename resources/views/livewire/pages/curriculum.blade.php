@@ -72,8 +72,19 @@
                     </p>
 
                     <p>
-                        Lesson:
-                        {{ $module->lessons->count() }}
+                        Materi:
+                        {{
+                            count(
+                                $module->material_files
+                                ?? []
+                            )
+                        }}
+                        file
+                    </p>
+
+                    <p>
+                        Test:
+                        {{ $module->quizzes->count() }}
                     </p>
 
                     <p>

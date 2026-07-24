@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\CompanyContent;
+use App\Models\ContributorProfile;
 use App\Models\Department;
-use App\Models\Position;
+use App\Models\FunTestQuestion;
 use App\Models\Question;
-use App\Models\QuestionOption;
 use App\Models\Quiz;
 use App\Models\TrainingModule;
 use App\Models\User;
@@ -22,62 +22,43 @@ class DatabaseSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
-        $hr = Department::create([
-            'code' => 'HR',
-            'name' => 'Human Resources',
-            'is_active' => true,
-        ]);
+        $hr =
+            Department::firstOrCreate(
+                [
+                    'code' => 'HR',
+                ],
+                [
+                    'name' => 'HR / HRGA',
 
-        $finance = Department::create([
-            'code' => 'FIN',
-            'name' => 'Finance',
-            'is_active' => true,
-        ]);
+                    'description' => 'Human Resources & General Affairs',
 
-        $scm = Department::create([
-            'code' => 'SCM',
-            'name' => 'SCM & Procurement',
-            'is_active' => true,
-        ]);
+                    'is_active' => true,
+                ]
+            );
 
-        $it = Department::create([
-            'code' => 'IT',
-            'name' => 'Information Technology',
-            'is_active' => true,
-        ]);
+        $finance =
+            Department::firstOrCreate(
+                [
+                    'code' => 'FIN',
+                ],
+                [
+                    'name' => 'Finance',
 
-        /*
-        |--------------------------------------------------------------------------
-        | POSITIONS
-        |--------------------------------------------------------------------------
-        */
+                    'is_active' => true,
+                ]
+            );
 
-        $hrManagerPosition =
-            Position::create([
-                'department_id' => $hr->id,
+        $scm =
+            Department::firstOrCreate(
+                [
+                    'code' => 'SCM',
+                ],
+                [
+                    'name' => 'SCM / IT',
 
-                'name' => 'HR Manager',
-
-                'level' => 'Manager',
-            ]);
-
-        $staffPosition =
-            Position::create([
-                'department_id' => $finance->id,
-
-                'name' => 'Finance Staff',
-
-                'level' => 'Staff',
-            ]);
-
-        $managerPosition =
-            Position::create([
-                'department_id' => $finance->id,
-
-                'name' => 'Finance Manager',
-
-                'level' => 'Manager',
-            ]);
+                    'is_active' => true,
+                ]
+            );
 
         /*
         |--------------------------------------------------------------------------
@@ -85,129 +66,144 @@ class DatabaseSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
-        User::create([
-            'nik' => 'ADMIN001',
+        $admin =
+            User::updateOrCreate(
+                [
+                    'email' => 'admin@rain.test',
+                ],
+                [
+                    'name' => 'Super Admin RAIN',
 
-            'name' => 'Super Admin RAIN',
+                    'password' => 'Admin123!',
 
-            'email' => 'admin@rain.test',
+                    'role' => User::ROLE_SUPER_ADMIN,
 
-            'password' => 'Admin123!',
+                    'status' => User::STATUS_ACTIVE,
 
-            'role' => User::ROLE_SUPER_ADMIN,
+                    'position_name' => 'System Administrator',
+                ]
+            );
 
-            'status' => User::STATUS_ACTIVE,
-        ]);
+        $hrUser =
+            User::updateOrCreate(
+                [
+                    'email' => 'hr@rain.test',
+                ],
+                [
+                    'name' => 'HR Administrator',
 
-        User::create([
-            'nik' => 'HR001',
+                    'password' => 'Password123!',
 
-            'name' => 'HR Administrator',
+                    'department_id' => $hr->id,
 
-            'email' => 'hr@rain.test',
+                    'position_name' => 'HR Administrator',
 
-            'password' => 'Password123!',
+                    'role' => User::ROLE_HR,
 
-            'department_id' => $hr->id,
+                    'status' => User::STATUS_ACTIVE,
+                ]
+            );
 
-            'position_id' => $hrManagerPosition->id,
+        $manager =
+            User::updateOrCreate(
+                [
+                    'email' => 'manager@rain.test',
+                ],
+                [
+                    'name' => 'Manager SCM',
 
-            'role' => User::ROLE_HR,
+                    'password' => 'Password123!',
 
-            'status' => User::STATUS_ACTIVE,
-        ]);
+                    'department_id' => $scm->id,
 
-        $financeManager =
-            User::create([
-                'nik' => 'MGR001',
+                    'position_name' => 'SCM CI Manager',
 
-                'name' => 'Manager Finance',
+                    'role' => User::ROLE_MANAGER,
 
-                'email' => 'manager@rain.test',
+                    'status' => User::STATUS_ACTIVE,
+                ]
+            );
 
-                'password' => 'Password123!',
+        $employee =
+            User::updateOrCreate(
+                [
+                    'email' => 'employee@rain.test',
+                ],
+                [
+                    'name' => 'Employee SCM',
 
-                'department_id' => $finance->id,
+                    'password' => 'Password123!',
 
-                'position_id' => $managerPosition->id,
+                    'department_id' => $scm->id,
 
-                'role' => User::ROLE_MANAGER,
+                    'position_name' => 'SCM Staff',
 
-                'status' => User::STATUS_ACTIVE,
-            ]);
+                    'manager_id' => $manager->id,
 
-        User::create([
-            'nik' => 'EMP001',
+                    'role' => User::ROLE_KARYAWAN,
 
-            'name' => 'Karyawan Finance',
-
-            'email' => 'employee@rain.test',
-
-            'password' => 'Password123!',
-
-            'department_id' => $finance->id,
-
-            'position_id' => $staffPosition->id,
-
-            'manager_id' => $financeManager->id,
-
-            'role' => User::ROLE_KARYAWAN,
-
-            'status' => User::STATUS_ACTIVE,
-        ]);
+                    'status' => User::STATUS_ACTIVE,
+                ]
+            );
 
         /*
         |--------------------------------------------------------------------------
-        | TRAINING MODULE
+        | CONTRIBUTOR
+        |--------------------------------------------------------------------------
+        */
+
+        ContributorProfile::updateOrCreate(
+            [
+                'user_id' => $manager->id,
+            ],
+            [
+                'nickname' => 'M. Farouq',
+
+                'bio' => 'Contributor konten SCM dan Continuous Improvement.',
+
+                'expertise' => 'SCM, Procurement, Continuous Improvement',
+
+                'is_active' => true,
+            ]
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | MANDATORY MODULE
         |--------------------------------------------------------------------------
         */
 
         $module =
-            TrainingModule::create([
-                'title' => 'Code of Conduct RAIN Group',
+            TrainingModule::updateOrCreate(
+                [
+                    'slug' => 'code-of-conduct-2026',
+                ],
+                [
+                    'title' => 'Code of Conduct (CoC) RAIN Group 2026',
 
-                'slug' => 'code-of-conduct-rain-group',
+                    'description' => 'Pedoman etika dan perilaku perusahaan RAIN Group.',
 
-                'description' => 'Pelatihan wajib mengenai etika, integritas, dan kode perilaku perusahaan.',
+                    'category' => TrainingModule::CATEGORY_MANDATORY,
 
-                'category' => 'mandatory',
+                    'duration_minutes' => 20,
 
-                'duration_minutes' => 60,
+                    'kpi_points' => 30,
 
-                'kpi_points' => 30,
+                    'passing_score' => 75,
 
-                'passing_score' => 70,
+                    'is_mandatory' => true,
 
-                'is_mandatory' => true,
+                    'is_active' => true,
 
-                'is_active' => true,
+                    'published_at' => now(),
 
-                'published_at' => now(),
-            ]);
+                    'created_by' => $admin->id,
 
-        $module->lessons()->create([
-            'title' => 'Pengenalan Code of Conduct',
+                    'material_files' => [],
 
-            'type' => 'video',
-
-            'content' => 'Materi pengenalan kode etik perusahaan.',
-
-            'duration_minutes' => 20,
-
-            'sort_order' => 1,
-        ]);
-
-        $module->lessons()->create([
-            'title' => 'Integritas dan Profesionalisme',
-
-            'type' => 'article',
-
-            'content' => 'Materi mengenai integritas dan profesionalisme.',
-
-            'duration_minutes' => 20,
-
-            'sort_order' => 2,
-        ]);
+                    'material_file_names' => [],
+                ]
+            );
 
         /*
         |--------------------------------------------------------------------------
@@ -216,65 +212,140 @@ class DatabaseSeeder extends Seeder
         */
 
         $quiz =
-            Quiz::create([
-                'training_module_id' => $module->id,
+            Quiz::updateOrCreate(
+                [
+                    'training_module_id' => $module->id,
 
-                'title' => 'Test Code of Conduct',
+                    'title' => 'Compliance & CoC',
+                ],
+                [
+                    'created_by' => $admin->id,
 
-                'time_limit_minutes' => 30,
+                    'question_count' => 2,
 
-                'max_attempts' => 3,
+                    'time_limit_minutes' => 20,
 
-                'is_active' => true,
-            ]);
+                    'max_attempts' => 3,
 
-        $question =
-            Question::create([
+                    'is_active' => true,
+                ]
+            );
+
+        Question::updateOrCreate(
+            [
                 'quiz_id' => $quiz->id,
 
-                'question_text' => 'Apa nilai utama yang harus dijaga seluruh karyawan?',
-
-                'points' => 10,
-
                 'sort_order' => 1,
-            ]);
+            ],
+            [
+                'type' => Question::TYPE_MULTIPLE_CHOICE,
 
-        QuestionOption::create([
-            'question_id' => $question->id,
+                'question_text' => 'Apa kepanjangan dari CoC dalam konteks perusahaan RAIN Group?',
 
-            'option_text' => 'Integritas',
+                'options' => [
+                    'A' => 'Code of Conduct',
 
-            'is_correct' => true,
-        ]);
+                    'B' => 'Charter of Company',
 
-        QuestionOption::create([
-            'question_id' => $question->id,
+                    'C' => 'Code of Commerce',
 
-            'option_text' => 'Mengabaikan peraturan',
+                    'D' => 'Contract of Compliance',
+                ],
 
-            'is_correct' => false,
-        ]);
+                'correct_answer' => 'A',
+
+                'explanation' => 'CoC merupakan singkatan dari Code of Conduct.',
+
+                'points' => 1,
+            ]
+        );
+
+        Question::updateOrCreate(
+            [
+                'quiz_id' => $quiz->id,
+
+                'sort_order' => 2,
+            ],
+            [
+                'type' => Question::TYPE_MULTIPLE_CHOICE,
+
+                'question_text' => 'Manakah tindakan yang sesuai Work Ethics?',
+
+                'options' => [
+                    'A' => 'Menggunakan aset perusahaan untuk pribadi',
+
+                    'B' => 'Melaporkan konflik kepentingan',
+
+                    'C' => 'Membagikan data rahasia',
+
+                    'D' => 'Menerima gratifikasi tanpa laporan',
+                ],
+
+                'correct_answer' => 'B',
+
+                'explanation' => 'Konflik kepentingan harus dilaporkan melalui mekanisme perusahaan.',
+
+                'points' => 1,
+            ]
+        );
 
         /*
         |--------------------------------------------------------------------------
-        | COMPANY CONTENT
+        | COMPANY INFORMATION
         |--------------------------------------------------------------------------
         */
 
-        CompanyContent::create([
-            'key' => 'vision',
+        CompanyContent::updateOrCreate(
+            [
+                'key' => 'vision',
+            ],
+            [
+                'title' => 'Visi',
 
-            'title' => 'Visi Perusahaan',
+                'content' => 'Menjadi perusahaan energi dan sumber daya alam yang terpercaya, berkelanjutan, dan memberikan nilai terbaik bagi seluruh pemangku kepentingan.',
+            ]
+        );
 
-            'content' => 'Menjadi perusahaan yang tumbuh berkelanjutan dan memberikan nilai terbaik bagi seluruh stakeholder.',
-        ]);
+        CompanyContent::updateOrCreate(
+            [
+                'key' => 'mission',
+            ],
+            [
+                'title' => 'Misi',
 
-        CompanyContent::create([
-            'key' => 'mission',
+                'content' => 'Mengelola sumber daya secara profesional, efisien, dan bertanggung jawab.',
+            ]
+        );
 
-            'title' => 'Misi Perusahaan',
+        /*
+        |--------------------------------------------------------------------------
+        | FUN TEST SAMPLE
+        |--------------------------------------------------------------------------
+        */
 
-            'content' => 'Membangun bisnis berkelanjutan melalui profesionalisme, integritas, teamwork, dan sustainability.',
-        ]);
+        FunTestQuestion::updateOrCreate(
+            [
+                'department_id' => $scm->id,
+
+                'mode' => FunTestQuestion::MODE_TRUE_FALSE,
+
+                'title' => 'SCM Quick Check',
+            ],
+            [
+                'created_by' => $manager->id,
+
+                'prompt' => 'OTIF berarti On Time In Full.',
+
+                'payload' => [],
+
+                'answer' => [
+                    'value' => 'true',
+                ],
+
+                'explanation' => 'OTIF adalah On Time In Full.',
+
+                'is_active' => true,
+            ]
+        );
     }
 }
